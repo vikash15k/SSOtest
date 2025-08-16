@@ -41,5 +41,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
     implementation("androidx.compose.material3:material3:1.2.1")
 
+    // Updated MSAL for shared device mode support
     implementation("com.microsoft.identity.client:msal:5.4.0")
+    
+    // Additional dependencies for better shared device support
+    implementation("androidx.browser:browser:1.8.0")
 }

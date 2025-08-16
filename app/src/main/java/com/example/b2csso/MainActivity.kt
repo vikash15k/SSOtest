@@ -11,6 +11,12 @@ import com.example.b2csso.ui.AppTheme
 import com.example.b2csso.ui.AuthGate
 import com.example.b2csso.ui.HomeScreen
 
+data class UserState(
+    val token: String,
+    val userName: String?,
+    val isSharedDevice: Boolean
+)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,12 +25,28 @@ class MainActivity : ComponentActivity() {
             setContent {
                 AppTheme {
                     val vm: MsalViewModel = viewModel()
-                    var token by remember { mutableStateOf<String?>(null) }
+                    var userState by remember { mutableStateOf<UserState?>(null) }
 
-                    if (token == null) {
-                        AuthGate(viewModel = vm, onSignedIn = { token = it })
+                    if (userState == null) {
+                        AuthGate(
+                            viewModel = vm,
+                            onSignedIn = { token, userName, isSharedDevice ->
+                                userState = UserState(token, userName, isSharedDevice)
+                            },
+                            onSignedOut = {
+                                userState = null
+                            }
+                        )
                     } else {
-                        HomeScreen(accessToken = token!!)
+                        HomeScreen(
+                            accessToken = userState!!.token,
+                            userName = userState!!.userName,
+                            isSharedDevice = userState!!.isSharedDevice,
+                            onSignOut = {
+                                vm.signOut(this@MainActivity)
+                                userState = null
+                            }
+                        )
                     }
                 }
             }

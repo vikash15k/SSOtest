@@ -1,11 +1,18 @@
 {
-  "client_id": "YOUR_B2C_CLIENT_ID",
+  "client_id": "YOUR_ENTRA_ID_CLIENT_ID",
   "redirect_uri": "msauth://com.example.b2csso/SIGNATURE_HASH",
+  "shared_device_mode_supported": true,
+  "broker_redirect_uri_registered": true,
   "authorities": [
     {
-      "type": "B2C",
-      "authority_url": "https://<b2c-tenant>.b2clogin.com/tfp/<b2c-tenant>.onmicrosoft.com/B2C_1A_SignUpOrSignIn",
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/common",
       "default": true
     }
-  ]
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "INFO",
+    "logcat_enabled": true
+  }
 }

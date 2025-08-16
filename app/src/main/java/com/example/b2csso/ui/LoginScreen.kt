@@ -14,12 +14,16 @@ import com.example.b2csso.AuthState
 import com.example.b2csso.MsalViewModel
 
 @Composable
-fun AuthGate(viewModel: MsalViewModel, onSignedIn: (String) -> Unit) {
+fun AuthGate(
+    viewModel: MsalViewModel, 
+    onSignedIn: (String, String?, Boolean) -> Unit,
+    onSignedOut: () -> Unit
+) {
     val state by viewModel.state.collectAsState()
     val activity = LocalContext.current as? Activity
 
     LaunchedEffect(Unit) {
-        activity?.let { viewModel.signIn(it) }
+        viewModel.checkCurrentState()
     }
 
     Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -28,23 +32,83 @@ fun AuthGate(viewModel: MsalViewModel, onSignedIn: (String) -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(16.dp))
-                    Text("Signing you in...")
+                    Text("Checking authentication state...")
                 }
             }
             is AuthState.SignedIn -> {
-                onSignedIn(s.accessToken)
-                Text("Signed in")
+                onSignedIn(s.accessToken, s.userName, s.isSharedDevice)
+                // This will be handled by the parent composable
+            }
+            is AuthState.SignedOut -> {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Microsoft Authenticator SSO",
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center
+                            )
+                            
+                            Spacer(Modifier.height(16.dp))
+                            
+                            Text(
+                                text = "Sign in using the account already logged into Microsoft Authenticator on this device",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                            
+                            Spacer(Modifier.height(24.dp))
+                            
+                            Button(
+                                onClick = { activity?.let { viewModel.signIn(it) } },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Sign In with Microsoft")
+                            }
+                        }
+                    }
+                }
             }
             is AuthState.Error -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = s.message,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = { activity?.let { viewModel.signIn(it) } }) {
-                        Text("Try Again")
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Authentication Error",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            
+                            Spacer(Modifier.height(16.dp))
+                            
+                            Text(
+                                text = s.message,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            
+                            Spacer(Modifier.height(24.dp))
+                            
+                            Button(
+                                onClick = { activity?.let { viewModel.signIn(it) } },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Try Again")
+                            }
+                        }
                     }
                 }
             }
